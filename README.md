@@ -1,6 +1,6 @@
 # ZAP ("Ze'test Anything Protocol")
 
-> A streamable structured interface for reporting tests in real time
+> A streamable structured interface for reporting tests in real time.
 
 ## Format
 
@@ -24,25 +24,31 @@ Or
 
 #### `kind`
 
+The type of entity the event is for.
+
 - `"suite"` A group of tests or other suites
 - `"test"` An individual test case containing assertions
 - `"assertion"` An individual bit of logic that passes or fails.
 
 #### `event`
 
-- `"started"`
-- `"skipped"`
-- `"passed"`
-- `"failed"`
-- `"info"`
-- `"warning"`
+The name of the event.
 
-You don't need to send a `"started"` event in order to send a `"passed"` or `"failed"` event.
-You only really need to send it when there is a gap in time between when something began
-running and when it completed. For example, a simple assertion does not need to report when
-it started running.
+- `"started"` Execution has started.
+- `"passed"` Execution has completed, and it was completely successful.
+- `"failed"` Execution has completed, and one or more parts of it failed.
+- `"skipped"` Execution was skipped.
+- `"info"` A info message.
+- `"warning"` A warning message.
+
+You don't need to send a `"started"` event in order to send a `"passed"` or
+`"failed"` event. You only really need to send it when there is a gap in time
+between when something began running and when it completed. For example, a
+simple assertion does not need to report when it started running.
 
 #### `id`
+
+The identifier for the entity.
 
 A string which a series of numbers separated by periods `.` (i.e. `2.3.1.12`)
 
@@ -85,6 +91,8 @@ This is a flat way to describe a tree of suites, tests, and assertions.
 
 #### `source`
 
+The source location for the event.
+
 A string of a file path and optionally line and column numbers.
 
 ```js
@@ -93,11 +101,12 @@ A string of a file path and optionally line and column numbers.
 { ... "source": "/path/to/project/test.js:42:6" ... } // filepath:line:column
 ```
 
-File paths should be `/absolute`, lines are 1-index based, columns are 0-index based
+File paths should be absolute, lines are 1-index based, columns are 0-index
+based.
 
 #### `message`
 
-A string describing the event.
+The description of the event.
 
 ```js
 { "kind": "suite" ... "message": "DatabaseConnection" ... }
@@ -107,12 +116,14 @@ A string describing the event.
 
 #### `timestamp`
 
-A string which is a valid ISO 8601 date and time
+The time the event occurred.
+
+A valid ISO 8601 date and time string.
 
 ```js
 { ... "timestamp": "2018-07-25T23:47:57.425Z" }
 ```
 
-Timestamps are used to calculate durations of suites, tests, or assertions. For example, if
-you have a test's `"started"` event and its `"passed"` event, you can compare their
-timestamps in order to tell how long the test took.
+Timestamps are used to calculate durations of suites, tests, or assertions. For
+example, if you have a test's `"started"` event and its `"passed"` event, you
+can compare their timestamps in order to tell how long the test took.
