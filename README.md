@@ -56,7 +56,35 @@ structured information.
 contains well structured information about tests and can be streamed and parsed
 very easily.
 
-## Format
+#### Goals
+
+- **Streaming:** Allow test frameworks to report test information to consumers
+  in real time as tests execute.
+- **Concurrency:** Allow tests to be run concurrently across threads or
+  processes and allow interweaving of events in output.
+- **Structured:** Use a well-defined structure that is easy to parse and
+  understand with lots of information.
+- **Extensible:** Have a clear way of adding additional information to test
+  output that is still meets the above goals.
+
+#### Non-goals
+
+- **Readability:** Where TAP is readable, ZAP does not have to be. The idea is
+  that like TAP it'd be easy to build reporters on top of ZAP.
+
+#### Comparison
+
+|                 | XML | TAP | ZAP |
+| ---------------:|:---:|:---:|:---:|
+| **Streaming**   |  ❌  |  ✅  |  ✅  |
+| **Concurrency** | N/A |  👌  |  ✅  |
+| **Structured**  |  ✅  |  ❌  |  ✅  |
+| **Extensible**  |  ✅  |  ❌  |  ✅  |
+| **Readable**    |  ❌  |  ✅  |  ❌  |
+
+## Spec
+
+### Format
 
 The output is stream of events written in newline-delimited json:
 
@@ -74,7 +102,7 @@ Or
 { kind: enum, event: enum, id: string, source: SourceLocation, message: string, timestamp: DateTime }
 ```
 
-## Fields
+### Fields
 
 #### `kind`
 
