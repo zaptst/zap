@@ -35,7 +35,7 @@ The type of entity the event is for.
 The name of the event.
 
 - `"started"` Execution has started.
-- `"passed"` Execution has completed, and it was completely successful.
+- `"passed"` Execution has completed, and it was all successful.
 - `"failed"` Execution has completed, and one or more parts of it failed.
 - `"skipped"` Execution was skipped.
 - `"info"` A info message.
@@ -88,6 +88,9 @@ This is a flat way to describe a tree of suites, tests, and assertions.
     - assertion: "2.0.0"
     - assertion: "2.0.1"
 ```
+
+You can determine the "parent" of the entity by stripping the last `.number`
+(i.e. `s/\.\d+$//`)
 
 #### `source`
 
