@@ -2,6 +2,10 @@
 
 > A streamable structured interface for reporting tests in real time.
 
+**Important!** This specification is a work in progress and is seeking feedback
+from potential users such a testing framework authors and CI/CD providers. It
+may change dramatically based on feedback.
+
 ## Motivation
 
 There are hundreds of different testing frameworks across every programming
