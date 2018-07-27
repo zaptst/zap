@@ -1,20 +1,20 @@
 # ZAP ("Ze'test Anything Protocol")
 
-> A streamable structured interface for reporting tests in real time.
+> A streamable structured interface for real time reporting of developer tools.
 
 **Important!** This specification is a work in progress and is seeking feedback
-from potential users such a testing framework authors and CI/CD providers. It
-may change dramatically based on feedback.
+from potential users such a developer tooling authors. It may change
+dramatically based on feedback.
 
 ## Motivation
 
-There are hundreds of different testing frameworks across every programming
+There are thousands of different developer tools across every programming
 language. Each of them has their own way of reporting the results of tests
 while they are runnning and after they are completed.
 
-But we need some standard formats for reporting test results so that tools can
+But we need some standard formats for reporting their results so that tools can
 work together without having to support hundreds of different formats for every
-language.
+language and tool.
 
 Today there exists two prominent formats for reporting test results:
 
@@ -48,7 +48,7 @@ not ok 4 - Summarized correctly # TODO Not written yet
 
 Each of these has different strengths and weaknesses.
 
-**JUnit** is easy to parse and lots of structured information about tests, but
+**JUnit** is easy to parse and lots of structured information about results, but
 cannot be streamed as tests run. You have to wait until your tests are finished
 before generating the XML.
 
@@ -57,22 +57,22 @@ report progress to developers. But it is hard to parse and contains very little
 structured information.
 
 **ZAP** is a new reporting format that tries to get the best of both systems, it
-contains well structured information about tests and can be streamed and parsed
-very easily.
+contains well structured information about results and can be streamed and
+parsed very easily.
 
 #### Goals
 
-- **Streaming:** Allow test frameworks to report test information to consumers
+- **Streaming:** Allow developer tools to report test information to consumers
   in real time as tests execute.
-- **Concurrency:** Allow tests to be run concurrently across threads or
+- **Concurrency:** Allow tools to be run concurrently across threads or
   processes and allow interweaving of events in output.
 - **Structured:** Use a well-defined structure that is easy to parse and
   understand with lots of information.
-- **Extensible:** Have a clear way of adding additional information to test
-  output that is still meets the above goals.
 - **Definitive:** At any given point, it should be clear what state things are
   in: "Passing" or "Failing". When a completion state is given, it should not
   change.
+- **Extensible:** Have a clear way of adding additional information to output
+  that is still meets the above goals.
 
 #### Non-goals
 
