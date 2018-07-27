@@ -3,7 +3,7 @@
 > A streamable structured interface for real time reporting of developer tools.
 
 **Important!** This specification is a work in progress and is seeking feedback
-from potential users such a developer tooling authors. It may change
+from potential users and any developer tooling authors. It may change
 dramatically based on feedback.
 
 ## Motivation
