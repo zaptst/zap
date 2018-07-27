@@ -70,11 +70,14 @@ very easily.
   understand with lots of information.
 - **Extensible:** Have a clear way of adding additional information to test
   output that is still meets the above goals.
+- **Definitive:** At any given point, it should be clear what state things are
+  in: "Passing" or "Failing". When a completion state is given, it should not
+  change.
 
 #### Non-goals
 
-- **Readability:** Where TAP is readable, ZAP does not have to be. The idea is
-  that like TAP it'd be easy to build reporters on top of ZAP.
+- **Readability:** It should be easy to build reporting tools on top of ZAP
+  that is human readable, but ZAP itself should be designed for machines.
 
 #### Comparison
 
@@ -85,6 +88,27 @@ very easily.
 | **Structured**  |  ✅  |  ❌  |  ✅  |
 | **Extensible**  |  ✅  |  ❌  |  ✅  |
 | **Readable**    |  ❌  |  ✅  |  ❌  |
+
+#### Considerations
+
+There are many different types of development tools that would like a standard
+way to report results via a format like ZAP.
+
+They generally fall into one of two categories:
+
+1. **Producers**
+  - Testing Frameworks
+  - Linters/Code Quality
+  - Type Checkers
+  - Compilers/Build Tools
+2. **Consumers**
+  - CI/CD Platforms/Services
+  - Task Runners/Build Frameworks
+  - Reporters (CLI or GUI)
+
+Many of these tools already use JUnit or TAP, however many are unhappy with
+these formats and would like something better. ZAP should consider all of these
+tools and provide guidance on implementations.
 
 ## Spec
 
