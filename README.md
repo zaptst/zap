@@ -134,7 +134,7 @@ interface Event {
   timestamp: string,
   content: Array<{
     message: string,
-    loc?: Array<{
+    source?: Array<{
       file: string,
       start?: { line: number, column?: number },
       end?: { line: number, column?: number }
