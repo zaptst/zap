@@ -7,11 +7,11 @@
 The output is stream of events written in newline-delimited json:
 
 ```js
-{"kind":"suite","event":"started","id":"0","timestamp":"2018-07-25T23:47:57.133Z","content":[{"message":"DatabaseConnection","loc":[{"file":"/path/to/test.js","start":{"row":3,"col":6},"end":{"row":3,"col":26}}]}]}
-{"kind":"test","event":"started","id":"0.0","timestamp":"2018-07-25T23:47:57.425Z","content":[{"message":"db.connect()","loc":[{"file":"/path/to/test.js","start":{"row":4,"col":8},"end":{"row":4,"col":20}}]}]}
-{"kind":"assertion","event":"failed","id":"0.0.0","timestamp":"2018-07-25T23:47:58.102Z","content":[{"message":"Expected:\n { port: 5432 }\nActual:\n  { port: 8000 }","loc":[{"file":"/path/to/test.js","start":{"row":42,"col":6}}]}]}
-{"kind":"test","event":"failed","id":"0.0","timestamp":"2018-07-25T23:47:58.175Z","content":[{"message":"db.connect()","loc":[{"file":"/path/to/test.js","start":{"row":4,"col":8},"end":{"row":4,"col":20}}]}]}
-{"kind":"suite","event":"failed","id":"0","timestamp":"2018-07-25T23:47:58.201Z","content":[{"message":"DatabaseConnection","loc":[{"file":"/path/to/test.js","start":{"row":3,"col":6},"end":{"row":3,"col":26}}]}]}
+{"kind":"suite","event":"started","id":"0","timestamp":"2018-07-25T23:47:57.133Z","content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
+{"kind":"test","event":"started","id":"0.0","timestamp":"2018-07-25T23:47:57.425Z","content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
+{"kind":"assertion","event":"failed","id":"0.0.0","timestamp":"2018-07-25T23:47:58.102Z","content":[{"message":"Expected:\n { port: 5432 }\nActual:\n  { port: 8000 }","source":[{"file":"/path/to/test.js","start":{"line":42,"column":6}}]}]}
+{"kind":"test","event":"failed","id":"0.0","timestamp":"2018-07-25T23:47:58.175Z","content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
+{"kind":"suite","event":"failed","id":"0","timestamp":"2018-07-25T23:47:58.201Z","content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
 ```
 
 Individual events have this shape:
@@ -26,8 +26,8 @@ interface Event {
     message: string,
     loc?: Array<{
       file: string,
-      start?: { row: number, col?: number },
-      end?: { row: number, col?: number }
+      start?: { line: number, column?: number },
+      end?: { line: number, column?: number }
     }>
   }>
 }
@@ -128,23 +128,24 @@ An array of messages and (optionally) source locations.
 ```js
 { ...
   "content": [
-    { "message": "number", "loc": [{ "file": "/path/to/source/file.js", "start": { "row": 15, "col": 12 }, "end": { "row": 15, "col": 19 } }] },
+    { "message": "number", "source": [{ "file": "/path/to/source/file.js", "start": { "line": 15, "column": 12 }, "end": { "line": 15, "column": 19 } }] },
     { "message": "is not compatible with" },
-    { "message": "string", "loc": [{ "file": "/path/to/source/file.js", "start": { "row": 19, "col": 8 }, "end": { "row": 19, "col": 14 } }] }
+    { "message": "string", "source": [{ "file": "/path/to/source/file.js", "start": { "line": 19, "column": 8 }, "end": { "line": 19, "column": 14 } }] }
   ]
   ...
 }
 ```
 
-Every element in the `"content"` array should be an object with the following shape
+Every element in the `"content"` array should be an object with the following
+shape:
 
 ```ts
 interface ContentPart {
   message: string,
-  loc?: Array<{
+  source?: Array<{
     file: string,
-    start?: { row: number, col?: number },
-    end?: { row: number, col?: number }
+    start?: { line: number, column?: number },
+    end?: { line: number, column?: number }
   }>
 }
 ```
@@ -154,12 +155,12 @@ interface ContentPart {
 When interpreting elements of `"content"` you should not attempt to "fill in"
 the missing elements.
 
-- If there is no `"loc"`, do not make one up or try associating
+- If there is no `"source"`, do not make one up or try associating
   it with the other elements in the `"content"` array.
 - If there is a `"file"` but no `"start"` or `"end"` positions, assume it means
   the file itself, not the range of the file's content.
-- If there is a `"row"` but no `"col"`, assume it means the entire row, not
-  range of the row's content.
+- If there is a `"line"` but no `"column"`, assume it means the entire line,
+  not range of the line's content.
 - If there is a `"start"` but no `"end"`, assume it means that exact position,
   not a range of a single characters, or to the rest of the file.
 
@@ -167,12 +168,12 @@ the missing elements.
 
 When interpreting a position:
 
-- `"row"` is 1-index based
-- `"col"` is 0-index based
+- `"line"` is 1-index based
+- `"column"` is 0-index based
 
 
-This means that when you are interpreting a `"col"` it is the index *before* a
-character. It targets this "in between" position and not the character itself.
+This means that when you are interpreting a `"column"` it is the index *before*
+a character. It targets this "in between" position and not the character itself.
 
 For example if we have the following line:
 
@@ -209,7 +210,7 @@ No tests found
 { ...
   "content": [{
     "message": "File named incorectly",
-    "loc": [{
+    "source": [{
       "file": "/path/to/file.js"
     }]
   }]
@@ -226,9 +227,9 @@ No tests found
 { ...
   "content": [{
     "message": "File too long",
-    "loc": [{
+    "source": [{
       "file": "/path/to/file.js",
-      "start": { "row": 10000 }
+      "start": { "line": 10000 }
     }]
   }]
 }
@@ -250,9 +251,9 @@ File too long
 { ...
   "content": [{
     "message": "Missing closing brace",
-    "loc": [{
+    "source": [{
       "file": "/path/to/file.js",
-      "start": { "row": 24, "col": 4 }
+      "start": { "line": 24, "column": 4 }
     }]
   }]
 }
@@ -274,10 +275,10 @@ File too long
 { ...
   "content": [{
     "message": "...",
-    "loc": [{
+    "source": [{
       "file": "/path/to/file.js",
-      "start": { "row": 12 },
-      "end": { "row": 14 }
+      "start": { "line": 12 },
+      "end": { "line": 14 }
     }]
   }]
 }
@@ -299,10 +300,10 @@ File too long
 { ...
   "content": [{
     "message": "Variable name `public` is reserved word",
-    "loc": [{
+    "source": [{
       "file": "/path/to/file.js",
-      "start": { "row": 9, "col": 6 },
-      "end": { "row": 9, "col": 13 }
+      "start": { "line": 9, "column": 6 },
+      "end": { "line": 9, "column": 13 }
     }]
   }]
 }
@@ -324,14 +325,14 @@ File too long
 { ...
   "content": [{
     "message": "Binding `active` declared multiple times",
-    "loc": [{
+    "source": [{
       "file": "/path/to/file.js",
-      "start": { "row": 9, "col": 6 },
-      "end": { "row": 9, "col": 13 }
+      "start": { "line": 9, "column": 6 },
+      "end": { "line": 9, "column": 13 }
     }, {
       "file": "/path/to/file.js",
-      "start": { "row": 27, "col": 6 },
-      "end": { "row": 27, "col": 13 }
+      "start": { "line": 27, "column": 6 },
+      "end": { "line": 27, "column": 13 }
     }]
   }]
 }
@@ -358,10 +359,10 @@ Binding `active` declared multiple times
   "content": [
     {
       "message": "number",
-      "loc": [{
+      "source": [{
         "file": "/path/to/one.js",
-        "start": { "row": 15, "col": 38 },
-        "end": { "row": 15, "col": 45 }
+        "start": { "line": 15, "column": 38 },
+        "end": { "line": 15, "column": 45 }
       }]
     },
     {
@@ -369,10 +370,10 @@ Binding `active` declared multiple times
     },
     {
       "message": "string",
-      "loc": [{
+      "source": [{
         "file": "/path/to/two.js",
-        "start": { "row": 9, "col": 6 },
-        "end": { "row": 9, "col": 13 }
+        "start": { "line": 9, "column": 6 },
+        "end": { "line": 9, "column": 13 }
       }]
     }
   }]
