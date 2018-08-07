@@ -149,61 +149,9 @@ interface Event {
 
 The type of entity the event is for.
 
-- `"group"` Contains `"group"`'s, `"item"`'s, or `"check"`'s, passes or fails
-  based on children.
+- `"group"` Contains `"group"`'s, `"item"`'s, or `"check"`'s, passes or fails based on children.
 - `"item"` Contains `"check"`'s, passes or fails based on children.
 - `"check"` Represents an individual assertion that either passes or fails.
-
-You can have any of these (including `"check"`'s) with top-level `"id"`'s, you
-don't have to wrap everything in a `"group"` or `"item"`.
-
-Note that if a `"group"` or `"item"` fails, they should always have at least
-one child kind that failed. i.e. You should always have at least one reported
-`"check"` that failed.
-
-#### Kind Examples
-
-The structure of reported event kinds may differ a lot based on the tool,
-
-##### Testing Framework
-
-```yaml
-- item: Test
-  - check: Assertion
-- group: Suite
-  - item: Test
-    - check: Assertion
-    - check: Assertion
-  - item: Test
-    - check: Assertion
-  - group: Nested Suite
-    - item: Test
-      - check: Assertion
-      - check: Assertion
-      - check: Assertion
-```
-
-#### Linter
-
-```yaml
-- group: File 1
-  - check: Lint Error
-  - check: Lint Error
-- group: File 2
-  - check: Lint Error
-  - check: Lint Error
-```
-
-#### Type Checker
-
-```yaml
-- check: Type Error
-- check: Type Error
-- check: Type Error
-- check: Type Error
-- check: Type Error
-- check: Type Error
-```
 
 ### `event`
 
