@@ -117,11 +117,11 @@ tools and provide guidance on implementations.
 The output is stream of events written in newline-delimited json:
 
 ```js
-{"kind":"suite","event":"started","id":"0","timestamp":"2018-07-25T23:47:57.133Z","content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
-{"kind":"test","event":"started","id":"0.0","timestamp":"2018-07-25T23:47:57.425Z","content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
-{"kind":"assertion","event":"failed","id":"0.0.0","timestamp":"2018-07-25T23:47:58.102Z","content":[{"message":"Expected:\n { port: 5432 }\nActual:\n  { port: 8000 }","source":[{"file":"/path/to/test.js","start":{"line":42,"column":6}}]}]}
-{"kind":"test","event":"failed","id":"0.0","timestamp":"2018-07-25T23:47:58.175Z","content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
-{"kind":"suite","event":"failed","id":"0","timestamp":"2018-07-25T23:47:58.201Z","content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
+{"kind":"group","event":"started","id":"0","timestamp":"2018-07-25T23:47:57.133Z","content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
+{"kind":"item","event":"started","id":"0.0","timestamp":"2018-07-25T23:47:57.425Z","content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
+{"kind":"check","event":"failed","id":"0.0.0","timestamp":"2018-07-25T23:47:58.102Z","content":[{"message":"Expected:\n { port: 5432 }\nActual:\n  { port: 8000 }","source":[{"file":"/path/to/test.js","start":{"line":42,"column":6}}]}]}
+{"kind":"item","event":"failed","id":"0.0","timestamp":"2018-07-25T23:47:58.175Z","content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
+{"kind":"group","event":"failed","id":"0","timestamp":"2018-07-25T23:47:58.201Z","content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
 ```
 
 Individual events have this shape:
@@ -149,9 +149,9 @@ interface Event {
 
 The type of entity the event is for.
 
-- `"suite"` A group of tests or other suites
-- `"test"` An individual test case containing assertions
-- `"assertion"` An individual bit of logic that passes or fails.
+- `"group"` Contains `"group"`'s, `"item"`'s, or `"check"`'s, passes or fails based on children.
+- `"item"` Contains `"check"`'s, passes or fails based on children.
+- `"check"` Represents an individual assertion that either passes or fails.
 
 ### `event`
 
@@ -167,7 +167,7 @@ The name of the event.
 You don't need to send a `"started"` event in order to send a `"passed"` or
 `"failed"` event. You only really need to send it when there is a gap in time
 between when something began running and when it completed. For example, a
-simple assertion does not need to report when it started running.
+simple check does not need to report when it started running.
 
 ### `id`
 
@@ -176,40 +176,40 @@ The identifier for the entity.
 A string which a series of numbers separated by periods `.` (i.e. `2.3.1.12`)
 
 ```js
-{ "kind": "suite", ... "id": "0", ... }
-{ "kind": "test", ... "id": "0.0", ... }
-{ "kind": "assertion", ... "id": "0.0.0", ... }
-{ "kind": "assertion", ... "id": "0.0.1", ... }
-{ "kind": "test", ... "id": "0.0", ... }
-{ "kind": "test", ... "id": "0.1", ... }
-{ "kind": "assertion", ... "id": "0.1.0", ... }
-{ "kind": "test", ... "id": "0.1", ... }
-{ "kind": "test", ... "id": "0.2", ... }
-{ "kind": "assertion", ... "id": "0.2.0", ... }
-{ "kind": "assertion", ... "id": "0.2.1", ... }
-{ "kind": "test", ... "id": "0.2", ... }
+{ "kind": "group", ... "id": "0", ... }
+{ "kind": "item", ... "id": "0.0", ... }
+{ "kind": "check", ... "id": "0.0.0", ... }
+{ "kind": "check", ... "id": "0.0.1", ... }
+{ "kind": "item", ... "id": "0.0", ... }
+{ "kind": "item", ... "id": "0.1", ... }
+{ "kind": "check", ... "id": "0.1.0", ... }
+{ "kind": "item", ... "id": "0.1", ... }
+{ "kind": "item", ... "id": "0.2", ... }
+{ "kind": "check", ... "id": "0.2.0", ... }
+{ "kind": "check", ... "id": "0.2.1", ... }
+{ "kind": "item", ... "id": "0.2", ... }
 ...
 ```
 
-This is a flat way to describe a tree of suites, tests, and assertions.
+This is a flat way to describe a tree of groups, items, and checks.
 
 ```yaml
-- suite: "0"
-  - test: "0.0"
-    - assertion: "0.0.0"
-    - assertion: "0.0.1"
-  - test: "0.1"
-    - assertion: "0.1.0"
-  - test: "0.2"
-    - assertion: "0.2.0"
-    - assertion: "0.2.1"
-- suite: "1"
-  - test: "1.0"
-    - assertion: "1.0.0"
-- suite: "2"
-  - test: "2.0"
-    - assertion: "2.0.0"
-    - assertion: "2.0.1"
+- group: "0"
+  - item: "0.0"
+    - check: "0.0.0"
+    - check: "0.0.1"
+  - item: "0.1"
+    - check: "0.1.0"
+  - item: "0.2"
+    - check: "0.2.0"
+    - check: "0.2.1"
+- group: "1"
+  - item: "1.0"
+    - check: "1.0.0"
+- group: "2"
+  - item: "2.0"
+    - check: "2.0.0"
+    - check: "2.0.1"
 ```
 
 You can determine the "parent" of the entity by stripping the last `.number`
@@ -225,9 +225,9 @@ A valid ISO 8601 date and time string.
 { ... "timestamp": "2018-07-25T23:47:57.425Z" }
 ```
 
-Timestamps are used to calculate durations of suites, tests, or assertions. For
-example, if you have a test's `"started"` event and its `"passed"` event, you
-can compare their timestamps in order to tell how long the test took.
+Timestamps are used to calculate durations of groups, items, or checks. For
+example, if you have a items's `"started"` event and its `"passed"` event, you
+can compare their timestamps in order to tell how long the item took.
 
 ### `content`
 
