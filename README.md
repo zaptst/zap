@@ -117,11 +117,11 @@ tools and provide guidance on implementations.
 The output is stream of events written in newline-delimited json:
 
 ```js
-{"kind":"group","event":"started","id":"0","timestamp":"2018-07-25T23:47:57.133Z","content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
-{"kind":"item","event":"started","id":"0.0","timestamp":"2018-07-25T23:47:57.425Z","content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
-{"kind":"check","event":"failed","id":"0.0.0","timestamp":"2018-07-25T23:47:58.102Z","content":[{"message":"Expected:\n { port: 5432 }\nActual:\n  { port: 8000 }","source":[{"file":"/path/to/test.js","start":{"line":42,"column":6}}]}]}
-{"kind":"item","event":"failed","id":"0.0","timestamp":"2018-07-25T23:47:58.175Z","content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
-{"kind":"group","event":"failed","id":"0","timestamp":"2018-07-25T23:47:58.201Z","content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
+{"kind":"group","event":"started","id":"0","time":304.09246500208974,"content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
+{"kind":"item","event":"started","id":"0.0","time":318.4295700006187,"content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
+{"kind":"check","event":"failed","id":"0.0.0","time":379.8125419989228,"content":[{"message":"Expected:\n { port: 5432 }\nActual:\n  { port: 8000 }","source":[{"file":"/path/to/test.js","start":{"line":42,"column":6}}]}]}
+{"kind":"item","event":"failed","id":"0.0","time":390.98526199907064,"content":[{"message":"db.connect()","source":[{"file":"/path/to/test.js","start":{"line":4,"column":8},"end":{"line":4,"column":20}}]}]}
+{"kind":"group","event":"failed","id":"0","time":464.20705600082874,"content":[{"message":"DatabaseConnection","source":[{"file":"/path/to/test.js","start":{"line":3,"column":6},"end":{"line":3,"column":26}}]}]}
 ```
 
 Individual events have this shape:
@@ -131,7 +131,7 @@ interface Event {
   kind: string,
   event: string,
   id: string,
-  timestamp: string,
+  time: number,
   content: Array<{
     message: string,
     source?: Array<{
@@ -267,19 +267,42 @@ This is a flat way to describe a tree of groups, items, and checks.
 You can determine the "parent" of the entity by stripping the last `.number`
 (i.e. `s/\.\d+$//`)
 
-### `timestamp`
+### `time`
 
-The time the event occurred.
+The offset time the event occured.
 
-A valid ISO 8601 date and time string.
+A number in milliseconds with arbitrary precision up to nanoseconds.
 
 ```js
-{ ... "timestamp": "2018-07-25T23:47:57.425Z" }
+{ ... "time": 257.0332779996097  ... }
+{ ... "time": 304.6154760001227  ... }
+{ ... "time": 397.152665999718   ... }
+{ ... "time": 425.59379499964416 ... }
+{ ... "time": 496.1821520002559  ... }
 ```
 
-Timestamps are used to calculate durations of groups, items, or checks. For
-example, if you have a items's `"started"` event and its `"passed"` event, you
-can compare their timestamps in order to tell how long the item took.
+To calculate the duration of an entity you can compare the entity's `"start"`
+and `"passed"` or `"failed"` event.
+
+```js
+{ "id": "0.0", "event": "started", "time": 304.6154760001227 ... }
+{ "id": "0.0", "event": "passed", "time": 425.59379499964416 ... }
+```
+
+```
+425.5937949996ms - 304.6154760001227ms = 120.9783189995ms = 0.12s
+```
+
+**Important!** You should not assume that event times from entities with
+different `"id"`'s have anything to do with one another. They could have been
+run in separate parallel processes, or even across different machines.
+
+```js
+{ "id": "1.8", "event": "started", "time": 304.6154760001227 ... } // from process 1
+{ "id": "4.3", "event": "started", "time": 4235.59379499964416 ... } // from process 2
+{ "id": "2.2", "event": "started", "time": 204.152665999718 ... } // from process 3
+// none of these times have anything to do with one another
+```
 
 ### `content`
 
@@ -332,7 +355,6 @@ When interpreting a position:
 
 - `"line"` is 1-index based
 - `"column"` is 0-index based
-
 
 This means that when you are interpreting a `"column"` it is the index *before*
 a character. It targets this "in between" position and not the character itself.
