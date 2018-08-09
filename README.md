@@ -1,4 +1,4 @@
-# ZAP ("Ze'test Anything Protocol")
+# ZAP ("Ze'report Anything Protocol")
 
 > A streamable structured interface for real time reporting of developer tools.
 
