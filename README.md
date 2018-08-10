@@ -132,6 +132,7 @@ interface Event {
   event: string,
   id: string,
   time: number,
+  status?: string,
   content: Array<{
     message: string,
     source?: Array<{
@@ -210,16 +211,126 @@ The structure of reported event kinds may differ a lot based on the tool,
 The name of the event.
 
 - `"started"` Execution has started.
-- `"passed"` Execution has completed, and it was all successful.
-- `"failed"` Execution has completed, and one or more parts of it failed.
-- `"skipped"` Execution was skipped.
-- `"info"` A info message.
-- `"warning"` A warning message.
+- `"info"` Still executing, but has some information.
+- `"completed"` Execution has completed.
 
-You don't need to send a `"started"` event in order to send a `"passed"` or
-`"failed"` event. You only really need to send it when there is a gap in time
-between when something began running and when it completed. For example, a
-simple check does not need to report when it started running.
+You don't need to send a `"started"` event in order to send a `"completed"`
+event. You only really need to send it when there is a gap in time between when
+something began running and when it completed. For example, a simple check does
+not need to report when it started running.
+
+### `status`
+
+- `"running"`
+- `"passed"`
+- `"failed"`
+- `"errored"`
+- `"skipped"`
+
+All statuses except for `"running"` should be considered final. They should
+only be updated by restarting an entity.
+
+```yaml
+# Bad
+- 0: started (running)
+- 0: info (failed)
+- 0: completed (passed)
+
+# Good
+- 0: started (running)
+- 0: completed (failed)
+- 0: started (running) "Retry"
+- 0: completed (passed)
+
+# Bad
+- 0: started (running)
+  - 0.0: started (running)
+  - 0.0: completed (passed)
+  - 0.1: started (running)
+  - 0.1: completed (failed)
+- 0: completed (failed)
+  - 0.1: started (running)
+  - 0.1: completed (passed) "Retry"
+- 0: completed (passed)
+
+# Good
+- 0: started (running)
+  - 0.0: started (running)
+  - 0.0: completed (passed)
+  - 0.1: started (running)
+  - 0.1: completed (failed)
+- 0: completed (failed)
+- 0: started (running) "Retry"
+  - 0.1: started (running)
+  - 0.1: completed (passed) "Retry"
+- 0: completed (passed)
+```
+
+A parent's status should be `"passed"` when all children `"passed"`:
+
+```yaml
+- 0: passed
+  - 0.0: passed
+  - 0.1: passed
+```
+
+A parent may have a status of `"passed"` or `"failed"` when a child was
+`"skipped"`. Skips may have multiple different reasons. They are not all
+failures depending on the situation.
+
+```yaml
+- 0: passed
+  - 0.0: passed
+  - 0.1: skipped
+- 1: failed
+  - 1.0: passed
+  - 1.1: skipped
+```
+
+But when one or more children fail or error, you *must* fail the parent.
+
+```yaml
+- 0: failed
+  - 0.0: failed
+  - 0.1: passed
+- 2: failed
+  - 2.0: errored
+  - 2.1: passed
+- 1: failed
+  - 1.0: failed
+  - 1.1: errored
+```
+
+Inversely, if you may not fail a parent if all the children passed, express
+your failure with another `"check"`. Although it can error.
+
+```yaml
+# Bad
+- 0: failed
+  - 0.0: passed
+  - 0.1: passed
+
+# Good
+- 0: failed
+  - 0.0: passed
+  - 0.1: passed
+  - 0.2: errored "An error occurred when cleaning up the database"
+
+# Good
+- 0: errored "An error occurred when cleaning up the database"
+  - 0.0: passed
+  - 0.1: passed
+```
+
+A parent can also choose to update their status to `"failed"` early when a
+child has failed and there are more children still running.
+
+```yaml
+- 0: failed
+  - 0.0: failed
+  - 0.1: running
+  - 0.2: running
+```
 
 ### `id`
 
@@ -282,11 +393,11 @@ A number in milliseconds with arbitrary precision up to nanoseconds.
 ```
 
 To calculate the duration of an entity you can compare the entity's `"start"`
-and `"passed"` or `"failed"` event.
+and `"completed"` events.
 
 ```js
 { "id": "0.0", "event": "started", "time": 304.6154760001227 ... }
-{ "id": "0.0", "event": "passed", "time": 425.59379499964416 ... }
+{ "id": "0.0", "event": "completed", "time": 425.59379499964416 ... }
 ```
 
 ```
