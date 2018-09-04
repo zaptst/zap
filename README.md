@@ -10,7 +10,7 @@ dramatically based on feedback.
 
 There are thousands of different developer tools across every programming
 language. Each of them has their own way of reporting the results of tests
-while they are runnning and after they are completed.
+while they are running and after they are completed.
 
 But we need some standard formats for reporting their results so that tools can
 work together without having to support hundreds of different formats for every
